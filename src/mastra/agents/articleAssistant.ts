@@ -3,12 +3,15 @@ import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { LibSQLStore } from '@mastra/libsql';
 import { fetchUserArticles } from '../tools';
+import { SUPPORTED_PLATFORMS } from '../constants';
+import path from 'path';
 
 export const articleAssistant = new Agent({
   name: 'Article Assistant',
   instructions: `
       You help users create new articles based on their past posts on Qiita, Zenn and note.
-      Ask the user for the platform (qiita, zenn or note) and the user name or id.
+      Ask the user for the platform (${SUPPORTED_PLATFORMS.join(', ')}) and the user name or id.
+      Validate the platform and user name before calling the tool. If article retrieval fails, reply "記事の取得中にエラーが発生しました".
       Use the fetchUserArticles tool to retrieve up to 5 recent articles.
       Discuss ideas for a new article referencing their past content.
       When requested, output a markdown draft of the article.
@@ -17,7 +20,7 @@ export const articleAssistant = new Agent({
   tools: { fetchUserArticles },
   memory: new Memory({
     storage: new LibSQLStore({
-      url: 'file:../mastra.db',
+      url: new URL('../mastra.db', import.meta.url).toString(),
     }),
     options: {
       lastMessages: 10,
